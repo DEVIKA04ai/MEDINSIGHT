@@ -685,6 +685,7 @@ function App() {
             </div>
           </div>
         )}
+                          
 
         {/* API Data Section */}
         <div className={mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6}>
