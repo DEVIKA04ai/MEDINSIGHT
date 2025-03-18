@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion } from "framer-motion";
 import {
   Bell, Bot, X, FileUp, Settings, HelpCircle, History,
   User, Sun, Moon, Brain, FileImage, FileText, Activity,
@@ -35,6 +36,25 @@ function App() {
   const [fileType, setFileType] = useState<'documents' | 'images'>('documents');
   const [isListening, setIsListening] = useState(false);
   const [isCameraOpen, setCameraOpen] = useState(false); // State for camera modal
+
+  interface AnimatedButtonProps {
+    onClick: () => void;
+    children: React.ReactNode;
+  }
+  
+  const AnimatedButton: React.FC<AnimatedButtonProps> = ({ onClick, children }) => {
+    return (
+      <motion.button
+        onClick={onClick}
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md transition-all"
+      >
+        {children}
+      </motion.button>
+    );
+  };
+
 
  // Function to start speech recognition
   const startListening = () => {
@@ -295,45 +315,75 @@ function App() {
 
   const FilesUploadArea = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploaded, setUploaded] = useState(false);
   
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
+      if (event.target.files && event.target.files.length > 0) {
+        const file = event.target.files[0];
         setSelectedFile(file);
+        uploadFile(file);
       }
+    };
+  
+    const uploadFile = async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      try {
+        const response = await fetch("http://127.0.0.1:5000/upload", {
+          method: "POST",
+          body: formData,
+        });
+  
+        if (response.ok) {
+          setUploaded(true);
+        } else {
+          console.error("Upload failed");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    };
+  
+    const handleAnalyzeClick = () => {
+      window.location.href = "/analyze"; // Redirect to analysis page
     };
   
     return (
       <div className="mt-6">
-        <div className={`border-2 border-dashed ${
-          isDarkMode ? 'border-gray-600' : 'border-gray-300'
-        } rounded-lg p-6 text-center`}>
-          <input
-            type="file"
-            id="fileUpload"
-            className="hidden"
-            accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.dcm"
-            onChange={handleFileChange}
-          />
-
-          <label
-            htmlFor="fileUpload"
-            className="cursor-pointer inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-          >
-            Choose File
-          </label>
-          {selectedFile && (
-            <p className="mt-3 text-sm text-green-400">
-              Selected File: {selectedFile.name}
-            </p>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          {!uploaded ? (
+            <>
+              <input
+                type="file"
+                id="fileUpload"
+                className="hidden"
+                accept=".pdf,.xlsx,.docx,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+              />
+              <AnimatedButton onClick={() => document.getElementById("fileUpload")?.click()}>
+              Choose File
+            </AnimatedButton>
+              <p className="text-sm mt-2 text-gray-500">
+                Supported formats: PDF, XLSX, DOCX, PNG, JPG, JPEG
+              </p>
+            </>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg font-medium">File uploaded successfully!</p>
+              <button
+                onClick={handleAnalyzeClick}
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-md"
+              >
+                Analyze
+              </button>
+            </div>
           )}
-          <p className={mt-2 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
-            Supported formats: {fileType === 'documents' ? 'PDF, XLSX, DOCX' : 'JPG, PNG, DICOM'}
-          </p>
         </div>
       </div>
     );
-  };  
+  };
+  
 
   const CameraUploadArea = () => {
     return (
@@ -431,9 +481,9 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'
-    }`}>
+    }`}>    
       {/* Header */}
       <header className={${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -557,14 +607,21 @@ function App() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className={p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}}
+              className="p-2 rounded-lg relative flex items-center justify-center"
             >
-              {isDarkMode ? (
-                <Sun className="h-6 w-6 text-yellow-400" />
-              ) : (
-                <Moon className="h-6 w-6 text-gray-600" />
-              )}
+            <motion.div
+              className="w-6 h-6 flex items-center justify-center"
+              animate={{ rotate: isDarkMode ? 180 : 0, scale: isDarkMode ? 1.2 : 1 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+            {isDarkMode ? (
+              <Sun className="h-6 w-6 text-yellow-400" />
+            ) : (
+              <Moon className="h-6 w-6 text-gray-600" />
+            )}
+              </motion.div>
             </button>
+
 
             {/* Profile */}
             <button
@@ -591,47 +648,52 @@ function App() {
             Upload Medical Reports
           </h2>
           
-          {/* Upload Tabs */}
-          <div className="mt-6 border-b border-gray-200">
-            <div className="flex space-x-8">
-              <button
-                onClick={() => setActiveUploadTab('files')}
-                className={`pb-4 relative ${
-                  activeUploadTab === 'files'
-                    ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
-                    : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <FileUp className="h-5 w-5" />
-                  <span>Upload Files</span>
-                </div>
-                {activeUploadTab === 'files' && (
-                  <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
-                    isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
-                  }`} />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveUploadTab('camera')}
-                className={`pb-4 relative ${
-                  activeUploadTab === 'camera'
-                    ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
-                    : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Camera className="h-5 w-5" />
-                  <span>Take Photo</span>
-                </div>
-                {activeUploadTab === 'camera' && (
-                  <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
-                    isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
-                  }`} />
-                )}
-              </button>
-            </div>
-          </div>
+      {/* Upload Tabs */}
+      <div className="mt-6 border-b border-gray-200">
+      <div className="flex space-x-8">
+      <motion.button
+        onClick={() => setActiveUploadTab('files')}
+        whileTap={{ scale: 0.9 }} // Soft bounce effect on click
+        whileHover={{ scale: 1.05 }} // Slight enlarge effect on hover
+        className={`pb-4 relative ${
+          activeUploadTab === 'files'
+          ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
+          : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+        }`}
+      >
+      <div className="flex items-center space-x-2">
+      <FileUp className="h-5 w-5" />
+      <span>Upload Files</span>
+      </div>
+      {activeUploadTab === 'files' && (
+      <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
+        isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
+        }`} />
+      )}
+      </motion.button>
+
+      <motion.button
+      onClick={() => setActiveUploadTab('camera')}
+      whileTap={{ scale: 0.9 }}
+      whileHover={{ scale: 1.05 }}
+      className={`pb-4 relative ${
+        activeUploadTab === 'camera'
+          ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
+          : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+        }`}
+      >
+      <div className="flex items-center space-x-2">
+        <Camera className="h-5 w-5" />
+        <span>Take Photo</span>
+      </div>
+      {activeUploadTab === 'camera' && (
+        <div className={`absolute bottom-0 left-0 w-full h-0.5 ${
+          isDarkMode ? 'bg-indigo-400' : 'bg-indigo-600'
+        }`} />
+      )}
+      </motion.button>
+      </div>
+      </div>
 
           {/* Upload Areas */}
           {activeUploadTab === 'files' ? (
@@ -685,7 +747,6 @@ function App() {
             </div>
           </div>
         )}
-                          
 
         {/* API Data Section */}
         <div className={mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6}>
