@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from "framer-motion";
+import Account from './Account';
 import {
   Bell, Bot, X, FileUp, Settings, HelpCircle, History,
   User, Sun, Moon, Brain, FileImage, FileText, Activity,
@@ -35,7 +36,9 @@ function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [fileType, setFileType] = useState<'documents' | 'images'>('documents');
   const [isListening, setIsListening] = useState(false);
-  const [isCameraOpen, setCameraOpen] = useState(false); // State for camera modal
+  const [isCameraOpen, setCameraOpen] = useState(false);
+  const [isAccountOpen, setAccountOpen] = useState(false);
+
 
   interface AnimatedButtonProps {
     onClick: () => void;
@@ -54,7 +57,6 @@ function App() {
       </motion.button>
     );
   };
-
 
  // Function to start speech recognition
   const startListening = () => {
@@ -203,7 +205,20 @@ function App() {
         user: {
           id: "user123",
           name: "John Doe",
-          email: "john.doe@example.com"
+          email: "john.doe@example.com",
+          avatar: '',
+          role: '',
+          personalInfo: {
+            dateOfBirth: '',
+            age: 0,
+            gender: '',
+            bloodType: ''
+          },
+          contactInfo: {
+            phone: '',
+            address: '',
+            emergencyContact: ''
+          }
         },
         reports: [
           {
@@ -395,7 +410,7 @@ function App() {
             <Camera className={`mx-auto h-12 w-12 ${
               isDarkMode ? 'text-gray-500' : 'text-gray-400'
             }`} />
-            <p className={mt-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>
+            <p className={`mt-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Take a photo of your medical document or condition
             </p>
             <button 
@@ -479,17 +494,30 @@ function App() {
     if (!date) return '';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+  
+  useEffect(() => {
+    if (isAccountOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+  
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isAccountOpen]);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'
     }`}>    
       {/* Header */}
-      <header className={${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm}>
+      <header className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Brain className={h-8 w-8 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}} />
-            <h1 className={text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+            <Brain className={`h-8 w-8 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
+            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               MedInsight
             </h1>
           </div>
@@ -502,7 +530,7 @@ function App() {
                   isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                 }`}
               >
-                <Bell className={h-6 w-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}} />
+                <Bell className={`h-6 w-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                 {unreadNotificationsCount > 0 && (
                   <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                     {unreadNotificationsCount}
@@ -515,7 +543,7 @@ function App() {
                   isDarkMode ? 'bg-gray-800' : 'bg-white'
                 } ring-1 ring-black ring-opacity-5 z-50`}>
                   <div className="p-4 border-b border-gray-200">
-                    <h3 className={font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+                    <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                       Notifications
                     </h3>
                   </div>
@@ -533,21 +561,21 @@ function App() {
                           } border-b border-gray-200`}
                         >
                           <div className="flex justify-between">
-                            <h4 className={font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+                            <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                               {notification.title}
                             </h4>
-                            <span className={text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
+                            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {notification.time}
                             </span>
                           </div>
-                          <p className={text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>
+                          <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                             {notification.message}
                           </p>
                         </div>
                       ))
                     ) : (
                       <div className="p-4 text-center">
-                        <p className={text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           No notifications yet
                         </p>
                       </div>
@@ -560,7 +588,7 @@ function App() {
                           prev.map(notification => ({ ...notification, read: true }))
                         );
                       }}
-                      className={text-sm ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline}
+                      className={`text-sm ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline`}
                     >
                       Mark all as read
                     </button>
@@ -630,8 +658,8 @@ function App() {
                 isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
               }`}
             >
-              <UserCircle className={h-6 w-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}} />
-              <span className={isDarkMode ? 'text-white' : 'text-gray-600'}>John Doe</span>
+              <UserCircle className={`h-6 w-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
+              <span className={isDarkMode ? 'text-white' : 'text-gray-600'}>Abhijith</span>
             </button>
           </div>
         </div>
@@ -657,8 +685,8 @@ function App() {
         whileHover={{ scale: 1.05 }} // Slight enlarge effect on hover
         className={`pb-4 relative ${
           activeUploadTab === 'files'
-          ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
-          : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+          ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
+          : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
         }`}
       >
       <div className="flex items-center space-x-2">
@@ -678,8 +706,8 @@ function App() {
       whileHover={{ scale: 1.05 }}
       className={`pb-4 relative ${
         activeUploadTab === 'camera'
-          ? ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}
-          : ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+          ? `${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`
+          : `${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`
         }`}
       >
       <div className="flex items-center space-x-2">
@@ -705,7 +733,7 @@ function App() {
 
         {/* Results Section */}
         {reports.length > 0 && (
-          <div className={mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6}>
+          <div className={`mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6`}>
             <h3 className={`text-xl font-semibold mb-4 ${
               isDarkMode ? 'text-white' : 'text-gray-900'
             }`}>
@@ -721,10 +749,10 @@ function App() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className={font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+                      <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {report.name}
                       </h4>
-                      <p className={text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         {report.date}
                       </p>
                     </div>
@@ -749,16 +777,16 @@ function App() {
         )}
 
         {/* API Data Section */}
-        <div className={mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6}>
-          <h3 className={text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+        <div className={`mt-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6`}>
+          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             API Data
           </h3>
           {apiData ? (
-            <pre className={text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} overflow-auto}>
+            <pre className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} overflow-auto`}>
               {JSON.stringify(apiData, null, 2)}
             </pre>
           ) : (
-            <p className={text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               Loading data...
             </p>
           )}
@@ -766,160 +794,179 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className={mt-auto py-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-inner}>
+      <footer className={`mt-auto py-8 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-inner`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h4 className={font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+              <h4 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 About
               </h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Our Mission
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Team
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className={font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+              <h4 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Support
               </h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     FAQs
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className={font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+              <h4 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Legal
               </h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Cookie Policy
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className={font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+              <h4 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Connect
               </h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Twitter
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     LinkedIn
                   </a>
                 </li>
                 <li>
-                  <a href="#" className={text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}}>
+                  <a href="#" className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     Facebook
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className={mt-8 pt-8 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} text-center}>
-            <p className={text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}}>
+          <div className={`mt-8 pt-8 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} text-center`}>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               © 2024 MedInsight. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-64 ${
-        isDarkMode ? 'bg-gray-800' : 'bg-white'
-      } shadow-lg transform ${
-        isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
-      } transition-transform duration-200 ease-in-out z-30`}>
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className={text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
-              Profile
-            </h2>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className={p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}}
-            >
-              <X className={h-5 w-5 ${isDarkMode ? 'text-white' : 'text-gray-600'}} />
-            </button>
-          </div>
-          
-          {/* Profile Section */}
-          <div className="mb-8 text-center">
-            <UserCircle className={h-20 w-20 mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
-            <h3 className={mt-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}}>John Doe</h3>
-            <p className={text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>john.doe@example.com</p>
-          </div>
+{/* Sidebar */}
+<motion.div
+  initial={{ x: "100%" }} // Start hidden (off-screen)
+  animate={{ x: isSidebarOpen ? 0 : "100%" }}
+  transition={{ duration: 0.3, ease: "easeInOut" }}
+  className={`fixed inset-y-0 right-0 w-64 ${
+    isDarkMode ? 'bg-gray-800' : 'bg-white'
+  } shadow-lg z-30`}
+>
+  <div className="p-4">
+    <div className="flex items-center justify-between mb-8">
+      <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        Profile
+      </h2>
+      <button
+        onClick={() => setSidebarOpen(false)}
+        className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+      >
+        <X className={`h-5 w-5 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
+      </button>
+    </div>
+    
+   {/* Profile Section */}
+<div className="mb-8 text-center">
+  <UserCircle className={`h-20 w-20 mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+  <h3 className={`mt-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Abhijith</h3>
+  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Abhijith_baby@gmail.com</p>
+</div>
 
-          <nav className="space-y-2">
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <User className={h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
-              <span className={${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>Account</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <History className={h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
-              <span className={${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>History</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <Settings className={h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
-              <span className={${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>Settings</span>
-            </button>
-            <button className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            }`}>
-              <HelpCircle className={h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
-              <span className={${isDarkMode ? 'text-gray-300' : 'text-gray-600'}}>Help</span>
-            </button>
-          </nav>
-        </div>
-      </div>
+<nav className="space-y-2">
+  {/* Account Button */}
+  <button 
+    onClick={() => setAccountOpen(true)} 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <User className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Account</span>
+  </button>
+
+  {/* History Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <History className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>History</span>
+  </button>
+
+  {/* Settings Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <Settings className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Settings</span>
+  </button>
+
+  {/* Help Button */}
+  <button 
+    className={`flex items-center space-x-3 w-full p-3 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+    }`}
+  >
+    <HelpCircle className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+    <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Help</span>
+  </button>
+</nav>
+  </div>
+</motion.div>
 
       {/* Enhanced Chatbot */}
       <div className="fixed bottom-4 right-4 z-20">
@@ -933,14 +980,14 @@ function App() {
             } flex items-center justify-between`}>
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <Bot className={h-8 w-8 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}} />
+                  <Bot className={`h-8 w-8 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
                   <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
                 </div>
                 <div>
-                  <h3 className={font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}}>
+                  <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Medical Assistant
                   </h3>
-                  <p className={text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}}>
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     Online
                   </p>
                 </div>
@@ -951,7 +998,7 @@ function App() {
                   isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                 }`}
               >
-                <X className={h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}} />
+                <X className={`h-5 w-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
               </button>
             </div>
             
@@ -964,7 +1011,7 @@ function App() {
             >
               <div className="space-y-4">
                 {conversation.map((msg, index) => (
-                  <div key={index} className={flex ${msg.role === "user" ? "justify-end" : "justify-start"}}>
+                  <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                     {msg.role === "assistant" && (
                       <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
                         <Bot className="h-5 w-5 text-indigo-600" />
@@ -978,7 +1025,7 @@ function App() {
                       }`}>
                         <p className="text-sm">{msg.content}</p>
                       </div>
-                      <p className={text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} ${msg.role === "user" ? "text-right" : ""}}>
+                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} ${msg.role === "user" ? "text-right" : ""}`}>
                         {formatTime(msg.timestamp)}
                       </p>
                     </div>
@@ -1001,9 +1048,9 @@ function App() {
                         isDarkMode ? 'bg-gray-700' : 'bg-white'
                       } shadow-sm`}>
                         <div className="flex space-x-1">
-                          <div className={h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce} style={{ animationDelay: '0ms' }}></div>
-                          <div className={h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce} style={{ animationDelay: '150ms' }}></div>
-                          <div className={h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce} style={{ animationDelay: '300ms' }}></div>
+                          <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce`} style={{ animationDelay: '0ms' }}></div>
+                          <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce`} style={{ animationDelay: '150ms' }}></div>
+                          <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-gray-400' : 'bg-gray-400'} animate-bounce`} style={{ animationDelay: '300ms' }}></div>
                         </div>
                       </div>
                     </div>
@@ -1013,7 +1060,7 @@ function App() {
             </div>
             
             {/* Quick Actions */}
-            <div className={px-4 py-2 ${isDarkMode ? 'bg-gray-800 border-t border-gray-700' : 'bg-white border-t border-gray-200'}}>
+            <div className={`px-4 py-2 ${isDarkMode ? 'bg-gray-800 border-t border-gray-700' : 'bg-white border-t border-gray-200'}`}>
               <div className="flex space-x-2 overflow-x-auto pb-2">
                 <button className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap ${
                   isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1043,7 +1090,7 @@ function App() {
             </div>
             
           {/* Chat Input Section */}
-          <div className={p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}}>
+          <div className={`p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className="flex items-end space-x-2">
               <div className="flex-1 relative">
                 <textarea
@@ -1073,7 +1120,7 @@ function App() {
                     <button className={`p-1 rounded-full ${
                       isDarkMode ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500'
                     }`}>
-                     <Mic className={h-4 w-4 ${isListening ? 'text-indigo-600' : ''}}
+                     <Mic className={`h-4 w-4 ${isListening ? 'text-indigo-600' : ''}`}
                     />
                     </button>
                     <button className={`p-1 rounded-full ${
@@ -1093,23 +1140,31 @@ function App() {
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setChatOpen(true)}
-            className={`p-4 rounded-full shadow-lg ${
-              isDarkMode ? 'bg-indigo-600' : 'bg-indigo-600'
-            } hover:bg-indigo-700 transition-colors relative group`}
-          >
-            <Bot className="h-6 w-6 text-white" />
-            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-              1
-            </span>
-            <span className="absolute top-0 right-full mr-3 px-3 py-1 rounded-lg bg-white text-gray-800 text-sm shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center">
-                <span>Need help?</span>
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </div>
-            </span>
-          </button>
+          <motion.button
+          onClick={() => setChatOpen(true)}
+          className={`p-4 rounded-full shadow-lg ${
+            isDarkMode ? 'bg-indigo-600' : 'bg-indigo-600'
+          } hover:bg-indigo-700 transition-colors relative group`}
+          animate={{
+            rotate: [0, -10, 10, -10, 0], // Waving animation
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 2,
+            ease: "easeInOut",
+          }}
+        >
+          <Bot className="h-6 w-6 text-white" />
+          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            1
+          </span>
+          <span className="absolute top-0 right-full mr-3 px-3 py-1 rounded-lg bg-white text-gray-800 text-sm shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center">
+              <span>Need help?</span>
+              <ArrowRight className="h-3 w-3 ml-1" />
+            </div>
+          </span>
+        </motion.button>
         )}
       </div>
 
@@ -1132,6 +1187,25 @@ function App() {
       {/* Modal for camera */}
       {isCameraOpen && <CameraModal />}
 
+      {isAccountOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto">
+  {/* Close Button */}
+  <div className="flex justify-end p-4 sticky top-0 bg-white z-10">
+    <button
+      onClick={() => setAccountOpen(false)}
+      className="p-2 rounded-lg hover:bg-gray-100"
+    >
+      <X className="h-5 w-5 text-gray-600" />
+    </button>
+  </div>
+
+  {/* Account Component */}
+  <Account />
+</div>
+    
+  </div>
+)}
     </div>
   );
 }
